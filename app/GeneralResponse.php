@@ -14,6 +14,13 @@ trait GeneralResponse
      */
     public function generalResponse($data = null, $message = '', $status = 200)
     {
+        if (is_array($message)) {
+            $firstErrorKey = array_key_first($message); 
+            if ($firstErrorKey) {
+                $message = $message[$firstErrorKey][0];
+            } 
+        }
+
         return response()->json([
             'data' => $data,
             'message' => $message

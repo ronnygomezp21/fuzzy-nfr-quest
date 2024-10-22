@@ -20,3 +20,4 @@ Route::middleware(['auth:api'])->group(function () {
 
 Route::post('/questions/import', [QuestionsController::class, 'import']);
 Route::post('/questions/getExcelHeadings', [QuestionsController::class, 'getExcelHeadings']);
+Route::post('/questions/questionsBySala', [QuestionsController::class, 'questionsBySala']);
