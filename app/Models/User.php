@@ -10,6 +10,11 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+    
     // Implement JWTSubject methods
     public function getJWTIdentifier()
     {
@@ -30,8 +35,12 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $fillable = [
         'name',
+        'last_name',
+        'username',
         'email',
+        'birth_date',
         'password',
+        'role_id',
     ];
 
     /**
@@ -41,7 +50,10 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $hidden = [
         'password',
-        'remember_token',
+        'id',
+        'created_at',
+        'updated_at',
+        'role_id'
     ];
 
     /**
