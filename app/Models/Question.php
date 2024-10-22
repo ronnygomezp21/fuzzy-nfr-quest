@@ -19,5 +19,6 @@ class Question extends Model
         'recomend',
         'feedback3',
         'validar',
+        'sala_de_juego'
     ];
 }
