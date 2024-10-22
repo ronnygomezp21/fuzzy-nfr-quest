@@ -19,4 +19,12 @@ trait GeneralResponse
             'message' => $message
         ], $status);
     }
+
+    public function generalResponseWithErrors($message = '', $status = 500)
+    {
+        return response()->json([
+            'data' => null,
+            'message' => $message,
+        ], $status);
+    }
 }
