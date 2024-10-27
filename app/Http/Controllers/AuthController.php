@@ -6,12 +6,11 @@ use App\GeneralResponse;
 use App\Http\Requests\LoginUserRequest;
 use App\Http\Requests\RegisterUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+
 
 class AuthController extends Controller
 {
@@ -44,14 +43,19 @@ class AuthController extends Controller
 
   public function logout()
   {
-    Auth::logout();
-    return $this->generalResponse(null, 'Se ha cerrado la sesión correctamente.');
+    try {
+      JWTAuth::invalidate(JWTAuth::getToken());
+
+      return $this->generalResponse(null, 'Se ha cerrado la sesión correctamente.');
+    } catch (JWTException $e) {
+      return $this->generalResponseWithErrors('Error al cerrar la sesión, por favor intenta nuevamente.');
+    }
   }
 
   public function register(RegisterUserRequest $request)
   {
     try {
-      $user = User::create([
+      User::create([
         'name' => $request->name,
         'last_name' => $request->last_name,
         'username' => $request->username,

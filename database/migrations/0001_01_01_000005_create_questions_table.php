@@ -21,7 +21,11 @@ return new class extends Migration
             $table->string('recomend');
             $table->string('feedback3');
             $table->string('validar');
+            $table->unsignedBigInteger('game_room_id');
             $table->timestamps();
+
+            $table->foreign('game_room_id')->references('id')->on('game_rooms')->onDelete('cascade');
+
         });
     }
 

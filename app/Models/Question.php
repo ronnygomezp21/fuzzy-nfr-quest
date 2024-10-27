@@ -10,7 +10,7 @@ class Question extends Model
     use HasFactory;
 
     protected $fillable
- = [
+    = [
         'nfr',
         'variable',
         'feedback1',
@@ -19,6 +19,12 @@ class Question extends Model
         'recomend',
         'feedback3',
         'validar',
-        'sala_de_juego'
+        'game_room_id'
+        //'sala_de_juego'
     ];
+
+    public function gameRoom()
+    {
+        return $this->belongsTo(GameRoom::class);
+    }
 }

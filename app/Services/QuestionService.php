@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class QuestionService implements ToModel, WithHeadingRow
 {
     protected $headings;
-    private $salaDeJuego; 
+    private $gameRoomId; 
 
 
     public function __construct()
@@ -18,9 +18,9 @@ class QuestionService implements ToModel, WithHeadingRow
         $this->headings = [];
     }
 
-    public function getHeadings($filePath, $salaDeJuego)
+    public function getHeadings($filePath, $gameRoomId)
     {
-        $this->salaDeJuego = $salaDeJuego;
+        $this->gameRoomId = $gameRoomId;
         $headings = Excel::toArray([], $filePath);
         $this->headings = $headings[0][0]; // Guardar los encabezados en la propiedad
     }
@@ -36,7 +36,7 @@ class QuestionService implements ToModel, WithHeadingRow
             'recomend' => trim($row['recomendedvalues']),
             'feedback3' => trim($row['feedback3']), 
             'validar' => trim($row['validar']),
-            'sala_de_juego' => $this->salaDeJuego
+            'game_room_id' => $this->gameRoomId
         ]);
     }
 
@@ -45,9 +45,9 @@ class QuestionService implements ToModel, WithHeadingRow
         return 1; 
     }
 
-    public function getQuestionsBySalaDeJuego(string $salaDeJuego)
+    public function getQuestionsByCode(string $code)
     {
-        return Question::where('sala_de_juego', $salaDeJuego)->get();
+        return Question::where('code', trim($code))->get();
     }
 
     // public function getHeadings($filePath)
