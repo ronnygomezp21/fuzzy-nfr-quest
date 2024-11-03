@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['http://sk-jenkin-angular.s3-website.us-east-2.amazonaws.com', 'http://localhost:4200'],
+    'allowed_origins' => ['http://sk-jenkin-angular.s3-website.us-east-2.amazonaws.com', 'http://localhost:4200', 'http://localhost:8080'],
 
     'allowed_origins_patterns' => [],
 
