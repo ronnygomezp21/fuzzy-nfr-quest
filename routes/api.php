@@ -14,7 +14,7 @@ Route::group(['prefix' => 'auth'], function () {
     Route::get('/roles', [RoleController::class, 'index']);
 });
 
-Route::middleware(['auth:api', 'cors'])->group(function () {
+Route::middleware(['auth:api'])->group(function () {
     Route::get('user-profile', [UserController::class, 'userProfile']);
     Route::post('/questions/import', [QuestionsController::class, 'import']);
     //Route::post('/questions/getExcelHeadings', [QuestionsController::class, 'getExcelHeadings']);
