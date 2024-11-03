@@ -18,7 +18,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('user-profile', [UserController::class, 'userProfile']);
     Route::post('/questions/import', [QuestionsController::class, 'import']);
     //Route::post('/questions/getExcelHeadings', [QuestionsController::class, 'getExcelHeadings']);
-    Route::post('/questions/questionsByCode', [QuestionsController::class, 'questionsByCode']);
+    // Route::post('/questions/questionsByCode', [QuestionsController::class, 'questionsByCode']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     Route::post('/quiz', [QuizController::class, 'store']);
     Route::post('/create-room-game-questions', [QuestionsController::class, 'createRoomGameQuestions']);
@@ -26,3 +26,4 @@ Route::middleware(['auth:api'])->group(function () {
 
 Route::post('password/send-otp', [PasswordResetOTPController::class, 'sendOTP']);
 Route::post('password/reset-otp', [PasswordResetOTPController::class, 'resetPassword']);
+Route::post('/questions/questionsByCode', [QuestionsController::class, 'questionsByCode']);
