@@ -87,7 +87,7 @@ class QuizController extends Controller
 
         $finalScore = round($maxScore > 0 ? ($totalScore / $maxScore) * 100 : 0, 2);
 
-        $resultado = GameScore::create([
+       GameScore::create([
             'user_id' => $userId,
             'score' => $finalScore,
             'answered_questions' => $result, 

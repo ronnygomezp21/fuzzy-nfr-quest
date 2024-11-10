@@ -20,7 +20,7 @@ class AuthController extends Controller
   {
 
     try {
-      $credentials = $request->only('username', 'password');
+      $credentials = $request->only('email', 'password');
       $token = null;
 
       if (!$token = JWTAuth::attempt($credentials)) {
