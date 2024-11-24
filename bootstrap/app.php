@@ -49,7 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     return response()->json([
                         'data' => null,
                         'message' => 'Error en la consulta a la base de datos: Columna no encontrada.',
-                        //'error' => $e->getMessage(),
+                        'error' => $e->getMessage(),
                     ], 400);
                 }
                 return response()->json([

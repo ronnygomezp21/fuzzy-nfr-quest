@@ -8,8 +8,10 @@ use Illuminate\Validation\ValidationException;
 use App\Services\QuestionService;
 use App\GeneralResponse;
 use App\Models\GameRoom;
+use App\Models\GameScore;
 use App\Models\Question;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class QuestionsController extends Controller
 {
@@ -34,11 +36,17 @@ class QuestionsController extends Controller
 
             $code = Str::random(6);
 
-            $gameRoom = GameRoom::create(['code' => $code]);
+            $gameRoom = GameRoom::create(['code' => $code, 'expiration_date' => now()->addDays(7)]);
             
             $this->questionService->getHeadings($request->file('archivo'), $gameRoom->id,);
             Excel::import($this->questionService, $request->file('archivo'));
-            return $this->generalResponse(null, 'Archivo importado correctamente', 200);  
+
+            return $this->generalResponse(
+                null,
+                'La sala de juegos se ha creado correctamente, ' .
+                'Por favor comparte este código <strong>' . $gameRoom->code . '</strong> con tus estudiantes, ' .
+                'Recuerda que esta sala expira el <strong>' . $gameRoom->expiration_date . '</strong>.'
+            );
 
         } catch (ValidationException $e) { 
             return $this->generalResponse(null, $e->errors(), 422); 
@@ -49,23 +57,45 @@ class QuestionsController extends Controller
 
     public function questionsByCode(Request $request)
     {
-      // Buscar la sala de juego por el código
-      $code = $request->input('code');
-        $gameRoom = GameRoom::where('code', $code)->first();
+        try {
 
-        // Verificar si la sala de juego existe
-        if (!$gameRoom) {
-            return response()->json(['message' => 'Sala de juego no encontrada'], 404);
+            $code = $request->input('code');
+            $userId = Auth::id();
+            $gameRoom = GameRoom::where('code', $code)->first();
+
+            if (!$gameRoom) {
+                return $this->generalResponse(null, 'La sala de juego que estás buscando no existe. Verifica el código e inténtalo nuevamente.', 404);
+            }
+
+            $gameScore = GameScore::where('game_room_id', $gameRoom->id)
+                                ->where('user_id', $userId)
+                                ->first();
+
+            if ($gameScore) {
+                return $this->generalResponse(null, 'Ya completaste el juego en esta sala. Por favor, únete a otra sala.', 403);
+            }
+
+            if (!$gameRoom->status) {
+                return $this->generalResponse(null, 'Esta sala de juego ya no está disponible. Por favor, verifique con su docente.', 403);
+            }
+
+            if ($gameRoom->expiration_date < now()) {
+                return $this->generalResponse(null, 'Esta sala de juego ya no está disponible porque ha expirado. Por favor, verifique con el docente o inicid una nueva sala', 403);
+            }
+
+            $questions = $gameRoom->questions()
+                ->select('id', 'nfr')
+                ->get();
+
+            return response()->json([
+                'message' => 'Requerimientos no funcionales encontrados.',
+                'game_room_id' => $gameRoom->id,
+                'questions' => $questions
+            ], 200);
+
+        } catch (Throwable $e) {
+            return $this->generalResponse(null, $e->getMessage(), 500); 
         }
-
-        // Obtener todas las preguntas relacionadas con la sala de juego
-        $questions = $gameRoom->questions;
-
-        // Devolver las preguntas en formato JSON
-        return response()->json([
-            'message' => 'Preguntas encontradas',
-            'questions' => $questions
-        ], 200);
     }
 
     public function createRoomGameQuestions(Request $request)
@@ -83,7 +113,7 @@ class QuestionsController extends Controller
 
         $code = Str::random(6);
 
-        $gameRoom = GameRoom::create(['code' => $code]);
+        $gameRoom = GameRoom::create(['code' => $code,  'expiration_date' => now()->addDays(7),]);
 
         foreach ($request->all() as $questionData) {
             Question::create([

@@ -13,7 +13,7 @@ class RoleController extends Controller
     public function index()
     {
         try {
-            $roles = Role::all();
+            $roles = Role::all()->where('status', 1);
             return $this->generalResponse($roles, 'Proceso exitoso.', 200);
         } catch (\Exception $e) {
             return $this->generalResponse(null, 'Ha ocurrido un error en el servidor, intentelo mas tarde.', 500);

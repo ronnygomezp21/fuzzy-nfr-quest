@@ -3,13 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class GameRoom extends Model
 {
-    protected $fillable = ['code'];
+    use HasFactory;
+
+    protected $fillable = ['code', 'expiration_date', 'status'];
+
+    protected $casts = [
+        'expiration_date' => 'datetime',
+        'status' => 'boolean',
+    ];
+
+    protected $hidden = ['updated_at'];
 
     public function questions()
     {
         return $this->hasMany(Question::class);
+    }
+
+    public function scores()
+    {
+        return $this->hasMany(GameScore::class, 'game_room_id');
     }
 }

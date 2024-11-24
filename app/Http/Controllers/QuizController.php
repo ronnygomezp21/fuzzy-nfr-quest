@@ -23,7 +23,7 @@ class QuizController extends Controller
         $maxScore = 0;
         $result = [];
 
-        foreach ($userResponses as $response) {
+        foreach ($userResponses["answers"] as $response) {
 
             $question = Question::find($response['id']);
 
@@ -57,9 +57,11 @@ class QuizController extends Controller
 
             if (!$correctVariable) {
                 $feedbackVariable = $question->feedback1;
-            } elseif (!$correctValue) {
+            }
+            if (!$correctValue) {
                 $feedbackValue = $question->feedback2;
-            } elseif (!$correctRecomend) {
+            }
+            if (!$correctRecomend) {
                 $feedbackRecomend = $question->feedback3;
             }
 
@@ -70,18 +72,18 @@ class QuizController extends Controller
                 'user_variable' => $response['variable'],
                 'feedback_variable' => $feedbackVariable,
                 'correct_variable' => $correctVariable,
-                'variable_score' => $scoreVariable . '/' . $weightVariable,
+                //'variable_score' => $scoreVariable . '/' . $weightVariable,
                 //'value' => $question->value,
                 'user_value' => $response['value'],
                 'feedback_value' => $feedbackValue,
                 'correct_value' => $correctValue,
-                'value_score' => $scoreValue . '/' . $weightValue,
+                //'value_score' => $scoreValue . '/' . $weightValue,
                 //'recomend' => $question->recomend,
                 'user_recomend' => $response['recomend'],
                 'feedback_recomend' => $feedbackRecomend,
                 'correct_recomend' => $correctRecomend,
-                'recomend_score' => $scoreRecomend . '/' . $weightRecomend,
-                'total_score_nfr' => round($score, 2),
+                //'recomend_score' => $scoreRecomend . '/' . $weightRecomend,
+                //'total_score_nfr' => round($score, 2),
             ];
         }
 
@@ -90,10 +92,24 @@ class QuizController extends Controller
        GameScore::create([
             'user_id' => $userId,
             'score' => $finalScore,
+            'duration' => $userResponses["duration"],
+            'game_room_id' => $userResponses["game_room_id"],
             'answered_questions' => $result, 
         ]);
         
 
         return $this->generalResponse(['total_score' => $finalScore, 'result' => $result], 'Cuestionario completado con éxito.');
+    }
+
+    public function getGameHistory()
+    {
+        $userId = Auth::id();
+
+        $gameScores = GameScore::where('user_id', $userId)
+            ->with('gameRoom')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return $this->generalResponse($gameScores, 'Historial de juegos recuperado con éxito.');
     }
 }
