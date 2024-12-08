@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\GeneralResponse;
 use App\Models\GameRoom;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 class GameRoomController extends Controller
@@ -11,8 +12,9 @@ class GameRoomController extends Controller
     use GeneralResponse;
 
     public function getGameRooms()
-    {
-        $gameRooms = GameRoom::all();
+    {   
+        $userId = Auth::id();
+        $gameRooms = GameRoom::where('user_id_created', $userId)->get();
         return $this->generalResponse($gameRooms, 'Lista de salas de juego');
     }
 

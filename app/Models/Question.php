@@ -16,6 +16,7 @@ class Question extends Model
         'feedback1',
         'value',
         'feedback2',
+        'other_recommended_values',
         'recomend',
         'feedback3',
         'validar',

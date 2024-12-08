@@ -35,7 +35,7 @@ class QuestionsController extends Controller
             //$salaDeJuego = $request->input('sala_de_juego');
 
             $code = Str::random(6);
-
+            //TODO COLOCAR AAUI EL ID DEL USUARIO QUIEN CREA LA SALA
             $gameRoom = GameRoom::create(['code' => $code, 'expiration_date' => now()->addDays(7)]);
             
             $this->questionService->getHeadings($request->file('archivo'), $gameRoom->id,);
@@ -84,7 +84,7 @@ class QuestionsController extends Controller
             }
 
             $questions = $gameRoom->questions()
-                ->select('id', 'nfr')
+                ->select('id', 'nfr', 'other_recommended_values')
                 ->get();
 
             return response()->json([
