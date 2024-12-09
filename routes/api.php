@@ -28,6 +28,8 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/game-history', [QuizController::class, 'getGameHistory']);
     Route::get('/game-rooms', [GameRoomController::class, 'getGameRooms']);
     Route::post('/delete-game-room', [GameRoomController::class, 'deleteGameRoom']);
+
+    Route::post('/questions/getInfoAllByCode', [QuestionsController::class, 'getInfoAllByCode']);
 });
 
 Route::post('password/send-otp', [PasswordResetOTPController::class, 'sendOTP']);

@@ -133,6 +133,50 @@ class QuestionsController extends Controller
 
     }
 
+
+    public function getInfoAllByCode(Request $request)
+    {
+        try {
+
+            $code = $request->input('code');
+            $userId = Auth::id();
+            $gameRoom = GameRoom::where('code', $code)->first();
+
+            if (!$gameRoom) {
+                return $this->generalResponse(null, 'La sala de juego que estás buscando no existe. Verifica el código e inténtalo nuevamente.', 404);
+            }
+
+            $gameScore = GameScore::where('game_room_id', $gameRoom->id)
+                                ->where('user_id', $userId)
+                                ->first();
+
+            if ($gameScore) {
+                return $this->generalResponse(null, 'Ya completaste el juego en esta sala. Por favor, únete a otra sala.', 403);
+            }
+
+            if (!$gameRoom->status) {
+                return $this->generalResponse(null, 'Esta sala de juego ya no está disponible. Por favor, verifique con su docente.', 403);
+            }
+
+            if ($gameRoom->expiration_date < now()) {
+                return $this->generalResponse(null, 'Esta sala de juego ya no está disponible porque ha expirado. Por favor, verifique con el docente o inicid una nueva sala', 403);
+            }
+
+            $questions = $gameRoom->questions()
+                ->select('id', 'nfr', 'variable', 'feedback1', 'value', 'feedback2', 'recomend', 'feedback3', 'validar')
+                ->get();
+
+            return response()->json([
+                'message' => 'Requerimientos no funcionales encontrados.',
+                'game_room_id' => $gameRoom->id,
+                'questions' => $questions
+            ], 200);
+
+        } catch (Throwable $e) {
+            return $this->generalResponse(null, $e->getMessage(), 500); 
+        }
+    }
+
     // public function getExcelHeadings(Request $request)
     // {
     //     try {
