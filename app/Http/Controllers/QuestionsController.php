@@ -1,17 +1,20 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Throwable;
 use Illuminate\Validation\ValidationException;
 use App\Services\QuestionService;
 use App\GeneralResponse;
+use App\Http\Requests\CreateGameRoomRNFRequest;
 use App\Models\GameRoom;
 use App\Models\GameScore;
 use App\Models\Question;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class QuestionsController extends Controller
 {
@@ -26,32 +29,37 @@ class QuestionsController extends Controller
 
     public function import(Request $request)
     {
-        try {
-            $request->validate([
-                'archivo' => 'required|file|mimes:xls,xlsx',
-                //'sala_de_juego' => 'required|string|unique:questions,sala_de_juego'
-            ]);
+        $request->validate([
+            'archivo' => 'required|file|mimes:xls,xlsx',
+        ]);
+        DB::beginTransaction();
 
-            //$salaDeJuego = $request->input('sala_de_juego');
+        try {
+            
+
+            $userId = Auth::id();
 
             $code = Str::random(6);
-            //TODO COLOCAR AAUI EL ID DEL USUARIO QUIEN CREA LA SALA
-            $gameRoom = GameRoom::create(['code' => $code, 'expiration_date' => now()->addDays(7)]);
-            
-            $this->questionService->getHeadings($request->file('archivo'), $gameRoom->id,);
+
+            $gameRoom = GameRoom::create(['code' => $code, 'user_id_created' => $userId, 'expiration_date' => now()->addDays(7)]);
+
+            $this->questionService->getHeadings($request->file('archivo'), $gameRoom->id);
             Excel::import($this->questionService, $request->file('archivo'));
+
+            DB::commit();
 
             return $this->generalResponse(
                 null,
                 'La sala de juegos se ha creado correctamente, ' .
-                'Por favor comparte este código <strong>' . $gameRoom->code . '</strong> con tus estudiantes, ' .
-                'Recuerda que esta sala expira el <strong>' . $gameRoom->expiration_date . '</strong>.'
+                    'Por favor comparte este código <strong>' . $gameRoom->code . '</strong> con tus estudiantes, ' .
+                    'Recuerda que esta sala expira el <strong>' . $gameRoom->expiration_date . '</strong>.'
             );
-
-        } catch (ValidationException $e) { 
-            return $this->generalResponse(null, $e->errors(), 422); 
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return $this->generalResponse(null, $e->errors(), 422);
         } catch (Throwable $e) {
-            return $this->generalResponse(null, $e->getMessage(), 500); 
+            DB::rollBack();
+            return $this->generalResponse(null, $e->getMessage(), 500);
         }
     }
 
@@ -68,8 +76,8 @@ class QuestionsController extends Controller
             }
 
             $gameScore = GameScore::where('game_room_id', $gameRoom->id)
-                                ->where('user_id', $userId)
-                                ->first();
+                ->where('user_id', $userId)
+                ->first();
 
             if ($gameScore) {
                 return $this->generalResponse(null, 'Ya completaste el juego en esta sala. Por favor, únete a otra sala.', 403);
@@ -80,7 +88,7 @@ class QuestionsController extends Controller
             }
 
             if ($gameRoom->expiration_date < now()) {
-                return $this->generalResponse(null, 'Esta sala de juego ya no está disponible porque ha expirado. Por favor, verifique con el docente o inicid una nueva sala', 403);
+                return $this->generalResponse(null, 'Esta sala de juego ya no está disponible porque ha expirado. Por favor, verifique con el docente o inicie una nueva sala', 403);
             }
 
             $questions = $gameRoom->questions()
@@ -92,62 +100,52 @@ class QuestionsController extends Controller
                 'game_room_id' => $gameRoom->id,
                 'questions' => $questions
             ], 200);
-
         } catch (Throwable $e) {
-            return $this->generalResponse(null, $e->getMessage(), 500); 
+            return $this->generalResponse(null, $e->getMessage(), 500);
         }
     }
 
-    public function createRoomGameQuestions(Request $request)
+    public function createRoomGameQuestions(CreateGameRoomRNFRequest $request)
     {
-        $request->validate([
-            '*.nfr' => 'required|string',
-            '*.variable' => 'required|string',
-            '*.feedback1' => 'required|string',
-            '*.value' => 'required|string',
-            '*.feedback2' => 'required|string',
-            '*.recomend' => 'required|string',
-            '*.feedback3' => 'required|string',
-            '*.validar' => 'required|string',
-        ]);
+        try {
 
-        $code = Str::random(6);
+            $data = $request->validated();
+            $questions = $data['questions'];
 
-        $gameRoom = GameRoom::create(['code' => $code,  'expiration_date' => now()->addDays(7),]);
+            $userId = Auth::id();
+            $code = Str::random(6);
 
-        foreach ($request->all() as $questionData) {
-            Question::create([
-                'game_room_id' => $gameRoom->id,
-                'nfr' => $questionData['nfr'],
-                'variable' => $questionData['variable'],
-                'feedback1' => $questionData['feedback1'],
-                'value' => $questionData['value'],
-                'feedback2' => $questionData['feedback2'],
-                'recomend' => $questionData['recomend'],
-                'feedback3' => $questionData['feedback3'],
-                'validar' => $questionData['validar'],
+            $gameRoom = GameRoom::create([
+                'code' => $code,
+                'user_id_created' => $userId,
+                'expiration_date' => $data["expiration_date"] //now()->addDays(7)
             ]);
+
+
+            foreach ($questions as $questionData) {
+                Question::create([
+                    'game_room_id' => $gameRoom->id,
+                    'nfr' => str_replace('.', '', trim($questionData['nfr'])),
+                    'variable' => trim($questionData['variable']),
+                    'feedback1' => trim($questionData['feedback1']),
+                    'value' => trim($questionData['value']),
+                    'feedback2' => trim($questionData['feedback2']),
+                    'recomend' => trim($questionData['recomend']),
+                    'other_recommended_values' => trim($questionData["other_recommended_values"]),
+                    'feedback3' => trim($questionData['feedback3']),
+                    'validar' => trim($questionData['validar']),
+                ]);
+            }
+
+
+            return $this->generalResponse(
+                null,
+                'La sala de juegos se ha creado correctamente, ' .
+                    'Por favor comparte este código <strong>' . $gameRoom->code . '</strong> con tus estudiantes, ' .
+                    'Recuerda que esta sala expira el <strong>' . $gameRoom->expiration_date . '</strong>.'
+            );
+        } catch (\Throwable $th) {
+            return $this->generalResponseWithErrors($th);
         }
-
-        return $this->generalResponse(null, 'Sala de juego creada exitosamente, comparte el codigo ' . $gameRoom->code . ' con tus estudiantes', 201);
-
     }
-
-    // public function getExcelHeadings(Request $request)
-    // {
-    //     try {
-    //         $request->validate([
-    //             'archivo' => 'required|file|mimes:xls,xlsx'
-    //         ]);
-
-    //         $headings = $this->questionService->getHeadings($request->file('archivo'));
-
-    //         return response()->json(['encabezados' => $headings], 200);
-
-    //     } catch (Throwable $e) {
-    //         return response()->json(['error' => $e->getMessage()], 500);
-    //     }
-    // }
-
-
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\QuestionsController;
 use App\Http\Controllers\PasswordResetOTPController;
+use App\Http\Controllers\PDFReportController;
 use App\Http\Controllers\QuizController;
 use App\Models\GameRoom;
 
@@ -28,6 +29,7 @@ Route::middleware(['auth:api'])->group(function () {
     Route::get('/game-history', [QuizController::class, 'getGameHistory']);
     Route::get('/game-rooms', [GameRoomController::class, 'getGameRooms']);
     Route::post('/delete-game-room', [GameRoomController::class, 'deleteGameRoom']);
+    Route::post('generate-report-teacher-game-room', [PDFReportController::class, 'generateReportTeacherGameRoom']);
 });
 
 Route::post('password/send-otp', [PasswordResetOTPController::class, 'sendOTP']);

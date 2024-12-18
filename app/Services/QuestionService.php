@@ -22,20 +22,21 @@ class QuestionService implements ToModel, WithHeadingRow
     {
         $this->gameRoomId = $gameRoomId;
         $headings = Excel::toArray([], $filePath);
-        $this->headings = $headings[0][0]; // Guardar los encabezados en la propiedad
+        $this->headings = $headings[0][0];
     }
 
     public function model(array $row)
     {
         return new Question([
-            'nfr' => trim($row['nfr']),
-            'variable' => trim($row['variable']),
-            'feedback1' => trim($row['feedback1']),
-            'value' => trim($row['value']),
-            'feedback2' => trim($row['feedback2']), 
-            'recomend' => trim($row['recomendedvalues']),
-            'feedback3' => trim($row['feedback3']), 
-            'validar' => trim($row['validar']),
+            'nfr' => str_replace('.', '', trim($row['rnf'])),
+            'variable' => str_replace('.', '', trim($row['linguistic_variable'])),
+            'feedback1' => trim($row['feedback_linguistic_variable']),
+            'value' => str_replace('.', '', trim($row['linguistic_value'])),
+            'feedback2' => trim($row['feedback_linguistic_value']), 
+            'recomend' => str_replace('.', '', trim($row['recommended_linguistic_value'])),
+            'feedback3' => trim($row['feedback_recommended_linguistic_value']), 
+            'other_recommended_values' => trim($row['other_linguistic_values']),
+            'validar' => trim($row['weights']),
             'game_room_id' => $this->gameRoomId
         ]);
     }
@@ -49,10 +50,4 @@ class QuestionService implements ToModel, WithHeadingRow
     {
         return Question::where('code', trim($code))->get();
     }
-
-    // public function getHeadings($filePath)
-    // {
-    //     $headings = Excel::toArray([], $filePath);
-    //     return $headings[0][0]; // Devuelve la primera fila, que son los encabezados
-    // }
 }

@@ -9,7 +9,7 @@ class GameRoom extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'expiration_date', 'status'];
+    protected $fillable = ['code', 'user_id_created', 'expiration_date', 'status'];
 
     protected $casts = [
         'expiration_date' => 'datetime',

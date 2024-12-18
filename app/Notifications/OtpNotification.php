@@ -51,7 +51,7 @@ class OtpNotification extends Notification
         return (new MailMessage)
                     ->subject('Tu código OTP para restablecer la contraseña')
                     ->greeting('Hola, ' . $this->user->name . '!')
-                    ->line('Tu código OTP para restablecer tu contraseña es:')
+                    ->line('Tu código para restablecer tu contraseña es:')
                     ->line($this->otp)
                     ->line('Este código es válido por 10 minutos.')
                     //->line('Fecha y hora de la solicitud: ' . $currentDateTime)

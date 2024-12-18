@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\GeneralResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
@@ -14,6 +15,8 @@ use Exception;
 
 class PasswordResetOTPController extends Controller
 {
+
+    use GeneralResponse;
     
     public function sendOTP(Request $request)
     {
@@ -23,8 +26,9 @@ class PasswordResetOTPController extends Controller
 
         try {
             $user = User::where('email', $request->email)->first();
+
             if (!$user) {
-                return response()->json(['message' => 'El correo no está registrado.'], 404);
+                return $this->generalResponseWithErrors('El correo no está registrado.', 404);
             }
 
             $otp = rand(100000, 999999);
@@ -38,14 +42,15 @@ class PasswordResetOTPController extends Controller
                     'created_at' => Carbon::now(),
                 ]
             );
+
             $user->notify(new OtpNotification($otp, $user));
             DB::commit();
-
-            return response()->json(['message' => 'OTP enviado al correo electrónico.'], 200);
+            
+            return $this->generalResponse(null, 'Tu código ha sido enviado a tu correo electrónico. Por favor, verifica tu bandeja de entrada.');
 
         } catch (Exception $e) {
             DB::rollBack();
-            return response()->json(['message' => 'Hubo un error al enviar el OTP, intenta nuevamente más tarde.'], 500);
+            return $this->generalResponseWithErrors('Hubo un error al enviar el OTP, intenta nuevamente más tarde.', 500);
         }
     }
 
@@ -67,17 +72,17 @@ class PasswordResetOTPController extends Controller
                 ->first();
 
             if (!$otpRecord) {
-                return response()->json(['message' => 'OTP no válido.'], 400);
+                return $this->generalResponseWithErrors('El código ingresado no es valido.', 400);
             }
 
             if (Carbon::now()->greaterThan($otpRecord->expires_at)) {
-                return response()->json(['message' => 'El OTP ha expirado.'], 400);
+                return $this->generalResponseWithErrors('El código ingresado ha expirado.', 400);
             }
 
             $user = User::where('email', $request->email)->first();
 
             if (!$user) {
-                return response()->json(['message' => 'El usuario no fue encontrado.'], 404);
+                return $this->generalResponseWithErrors('El correo electronico ingresado no fue encontrado.', 404);
             }
 
             $user->password = bcrypt($request->password);
@@ -87,12 +92,11 @@ class PasswordResetOTPController extends Controller
 
             DB::commit();
 
-            return response()->json(['message' => 'Contraseña restablecida correctamente.'], 200);
+            return $this->generalResponse(null, 'La contraseña se ha restablecida correctamente.');
 
         } catch (Exception $e) {
             DB::rollBack();
-
-            return response()->json(['message' => 'Hubo un error al restablecer la contraseña, intenta nuevamente más tarde.'], 500);
+            return $this->generalResponseWithErrors('Hubo un error al restablecer la contraseña, intenta nuevamente más tarde.');
         }
     }
 }

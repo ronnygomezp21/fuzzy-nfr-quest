@@ -10,13 +10,13 @@ class GameScore extends Model
     use HasFactory;
 
     protected $table = 'game_score';
-    protected $fillable = ['user_id', 'game_room_id', 'score', 'answered_questions', 'duration'];
+    protected $fillable = ['user_id', 'game_room_id', 'score', 'answered_questions', 'duration', 'created_at'];
     protected $hidden = ['updated_at'];
 
 
     public function users()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
     
     protected $casts = [
