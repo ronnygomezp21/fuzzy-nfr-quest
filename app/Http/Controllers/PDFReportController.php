@@ -8,6 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\GeneralResponse;
+use Illuminate\Support\Facades\DB;
 
 class PDFReportController extends Controller
 {
@@ -15,6 +16,7 @@ class PDFReportController extends Controller
 
     public function generateReportTeacherGameRoom(Request $request)
     {
+        DB::beginTransaction();
 
         try {
             $game_room_id = $request->input('game_room_id');
@@ -100,11 +102,13 @@ class PDFReportController extends Controller
             $fileName = 'REPORTE-SALA-' . $gameRoom->code . '-' . date('Y-m-d_H-i-s') . '.pdf';
 
             //return $pdf->download($fileName);
+            DB::commit();
             return response($pdf->output(), 200)
                 ->header('Content-Type', 'application/pdf')
                 ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
 
         } catch (\Throwable $th) {
+            DB::rollBack();
             return $this->generalResponse(null, $th->getMessage(), 500); 
         }
     }

@@ -12,8 +12,12 @@ class UserController extends Controller
 
     public function UserProfile()
     {
-        $userData = Auth::user();
-        $userData->role;
-        return $this->generalResponse($userData, 'Proceso exitoso.', 200);
+        try {
+            $userData = Auth::user();
+            $userData->role;
+            return $this->generalResponse($userData, 'Proceso exitoso.', 200);
+        } catch (\Throwable $th) {
+            return $this->generalResponseWithErrors($th);
+        }
     }
 }
